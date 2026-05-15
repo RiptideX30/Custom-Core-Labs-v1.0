@@ -1,0 +1,150 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-glow: var(--primary-glow);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-slate-ink: var(--slate-ink);
+  --color-slate-mute: var(--slate-mute);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  /* Pure white canvas */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.18 0.02 250);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 250);
+
+  /* Electric Blue */
+  --primary: oklch(0.62 0.24 255);
+  --primary-foreground: oklch(1 0 0);
+  --primary-glow: oklch(0.72 0.22 250);
+
+  --secondary: oklch(0.97 0.005 250);
+  --secondary-foreground: oklch(0.22 0.02 250);
+
+  --muted: oklch(0.975 0.004 250);
+  --muted-foreground: oklch(0.5 0.02 250);
+
+  --accent: oklch(0.96 0.02 255);
+  --accent-foreground: oklch(0.62 0.24 255);
+
+  --destructive: oklch(0.6 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
+
+  /* Thin slate-gray borders */
+  --border: oklch(0.92 0.008 250);
+  --border-strong: oklch(0.86 0.012 250);
+  --input: oklch(0.92 0.008 250);
+  --ring: oklch(0.62 0.24 255);
+
+  --slate-ink: oklch(0.32 0.025 250);
+  --slate-mute: oklch(0.55 0.02 250);
+
+  --shadow-elegant: 0 1px 2px oklch(0.18 0.02 250 / 0.04), 0 8px 24px oklch(0.18 0.02 250 / 0.06);
+  --shadow-glow: 0 0 0 1px oklch(0.62 0.24 255 / 0.15), 0 12px 40px oklch(0.62 0.24 255 / 0.18);
+
+  --gradient-blue: linear-gradient(135deg, oklch(0.62 0.24 255), oklch(0.72 0.22 245));
+  --grid-line: oklch(0.92 0.008 250);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html, body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+}
+
+@layer utilities {
+  .lab-grid {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  .lab-grid-fade {
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 80%);
+  }
+
+  .text-gradient-blue {
+    background: var(--gradient-blue);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hairline {
+    border-color: var(--border);
+  }
+
+  .hairline-strong {
+    border-color: var(--border-strong);
+  }
+
+  .mono {
+    font-family: var(--font-mono);
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  .animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+  @keyframes scan-line {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+  .animate-scan { animation: scan-line 3.5s ease-in-out infinite; }
+}
