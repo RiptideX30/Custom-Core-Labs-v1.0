@@ -6,10 +6,11 @@ export const getRouter = () => {
   const queryClient = new QueryClient(); 
   
   const router = createRouter({ 
-  routeTree, 
-  basepath: '/', // Update this line to root
-  context: { queryClient }, 
-  scrollRestoration: true, 
-  defaultPreloadStaleTime: 0, 
-});
+    routeTree, 
+    context: { queryClient }, 
+    scrollRestoration: true, 
+    defaultPreloadStaleTime: 0, 
+  }); 
 
+  return router; 
+};
