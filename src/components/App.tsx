@@ -153,12 +153,10 @@ export default function App() {
   const [partsValueStr, setPartsValueStr] = useState("");
   const [modal, setModal] = useState<ServiceId | null>(null);
   const [termsOpen, setTermsOpen] = useState(false);
-
-  // Form
-  const [form, setForm] = useState({ name: "", phone: "", email: "", pcpp: "" });
   const [submitted, setSubmitted] = useState(false);
 
   const partsValue = Math.max(0, Number(partsValueStr) || 0);
+
 
   /* ----- Compatibility logic ----- */
   const buildSelected = active.has("basic") || active.has("ultimate");
@@ -225,7 +223,6 @@ export default function App() {
       .then(() => {
         alert("PC Intake Form Submitted Successfully!");
         setSubmitted(true);
-        setForm({ name: "", phone: "", email: "", pcpp: "" });
         setActive(new Set());
         setPartsValueStr("");
       })
@@ -251,8 +248,6 @@ export default function App() {
         total={total}
         partsValueStr={partsValueStr}
         setPartsValueStr={setPartsValueStr}
-        form={form}
-        setForm={setForm}
         submitted={submitted}
         onSubmit={handleSubmit}
         resetSubmitted={() => setSubmitted(false)}
@@ -571,8 +566,6 @@ function IntakeAndEstimator({
   total,
   partsValueStr,
   setPartsValueStr,
-  form,
-  setForm,
   submitted,
   onSubmit,
   resetSubmitted,
@@ -582,10 +575,8 @@ function IntakeAndEstimator({
   total: number;
   partsValueStr: string;
   setPartsValueStr: (v: string) => void;
-  form: { name: string; phone: string; email: string; pcpp: string };
-  setForm: (f: { name: string; phone: string; email: string; pcpp: string }) => void;
   submitted: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   resetSubmitted: () => void;
 }) {
   const [step, setStep] = useState<1 | 2>(1);
@@ -645,8 +636,6 @@ function IntakeAndEstimator({
                     <Field
                       label="Customer name"
                       name="customer-name"
-                      value={form.name}
-                      onChange={(v) => setForm({ ...form, name: v })}
                       placeholder="Jane Doe"
                       maxLength={120}
                       required
@@ -654,8 +643,6 @@ function IntakeAndEstimator({
                     <Field
                       label="Phone number"
                       name="phone-number"
-                      value={form.phone}
-                      onChange={(v) => setForm({ ...form, phone: v })}
                       placeholder="(585) 555-0142"
                       type="tel"
                       maxLength={32}
@@ -664,8 +651,6 @@ function IntakeAndEstimator({
                     <Field
                       label="Email"
                       name="email"
-                      value={form.email}
-                      onChange={(v) => setForm({ ...form, email: v })}
                       placeholder="jane@email.com"
                       type="email"
                       maxLength={255}
@@ -674,8 +659,6 @@ function IntakeAndEstimator({
                     <Field
                       label="PCPartPicker URL"
                       name="pcpartpicker-url"
-                      value={form.pcpp}
-                      onChange={(v) => setForm({ ...form, pcpp: v })}
                       placeholder="https://pcpartpicker.com/list/…"
                       type="url"
                       maxLength={500}
@@ -702,7 +685,7 @@ function IntakeAndEstimator({
                         <input
                           name="parts-value"
                           inputMode="decimal"
-                          value={partsValueStr}
+                          defaultValue={partsValueStr}
                           onChange={(e) => setPartsValueStr(e.target.value.replace(/[^0-9.]/g, "").slice(0, 9))}
                           placeholder="1850.00"
                           className="w-full bg-transparent text-[14px] text-foreground placeholder:text-slate-mute/70 focus:outline-none"
@@ -835,29 +818,26 @@ function FieldShell({ label, children }: { label: string; children: React.ReactN
 function Field({
   label,
   name,
-  value,
-  onChange,
   placeholder,
   type = "text",
   maxLength,
   required,
+  defaultValue = "",
 }: {
   label: string;
   name: string;
-  value: string;
-  onChange: (v: string) => void;
   placeholder?: string;
   type?: string;
   maxLength?: number;
   required?: boolean;
+  defaultValue?: string;
 }) {
   return (
     <FieldShell label={label}>
       <input
         name={name}
         type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        defaultValue={defaultValue}
         placeholder={placeholder}
         maxLength={maxLength}
         required={required}
