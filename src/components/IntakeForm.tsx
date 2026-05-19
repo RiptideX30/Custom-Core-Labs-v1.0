@@ -116,22 +116,36 @@ const submit = async () => {
   // Compiles selected service list into text 
   const activeServicesText = [...services].join(", "); 
 
-  try { 
-    await fetch("https://formspree.io/f/xlgvdlok", { 
-      method: "POST", 
-      headers: { "Content-Type": "application/json" }, 
-      body: JSON.stringify({ 
-        "Project Type": track || "", 
-        "Selected Services": activeServicesText, 
-        "PCPartPicker URL": pcpp, 
-        "Symptom Details": symptoms, 
-      }), 
-    }); 
-    setSubmitted(true); 
-  } catch (error) { 
-    console.error("Formspree upload failed:", error); 
-    alert("Error sending details to server. Please try again."); 
-  } 
+    try {
+    // 1. Package the values into a standard Formspree format
+    const payload = {
+      "Project Type": track || "",
+      "Selected Services": activeServicesText,
+      "PCPartPicker URL": pcpp,
+      "Symptom Details": symptoms,
+    };
+
+    // 2. Line 108: Submit using Formspree's accepted AJAX layout
+    const response = await fetch("https://formspree.io", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json" // Crucial: Tells Formspree this is a valid script request
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (response.ok) {
+      setSubmitted(true);
+    } else {
+      const data = await response.json();
+      console.error("Formspree rejected the request:", data);
+      alert("Submission error: " + (data.error || "Please try again."));
+    }
+  } catch (error) {
+    console.error("Formspree upload network failed:", error);
+    alert("Error sending details to server. Please check your internet connection.");
+  }
 };
   return ( 
     <section id="intake" className="border-b hairline bg-secondary/30"> 
