@@ -117,19 +117,18 @@ export default function IntakeForm() {
     const activeServicesText = [...services].join(", ");
 
     try {
-      await fetch("/", {
+      await fetch("https://formspree.io/f/xlgvdlok", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          "form-name": "pc-intake-form",
-          "project-type": track || "",
-          "selected-services": activeServicesText,
-          "pcpartpicker-url": pcpp,
-          "symptoms-details": symptoms,
-        }).toString(),
-      });
-      setSubmitted(true); 
-    } catch (error) {
+         headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        "Project Type": track || "",
+        "Selected Services": activeServicesText,
+        "PCPartPicker URL": pcpp,
+        "Symptom Details": symptoms,
+      }),
+    });
+    setSubmitted(true); 
+  } catch (error) {
       console.error("Netlify upload failed:", error);
       alert("Error sending details to server. Please try again.");
     }
