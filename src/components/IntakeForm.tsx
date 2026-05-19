@@ -126,7 +126,7 @@ const submit = async () => {
     };
 
     // 2. Line 108: Submit using Formspree's accepted AJAX layout
-    const response = await fetch("https://formspree.io/f/xlgvdlok", {
+   const response = await fetch(`https://formspree.io${import.meta.env.VITE_FORMSPREE_ID || 'xlgvdlok'}`, {
       method: "POST",
       headers: { 
         "Content-Type": "application/json",
