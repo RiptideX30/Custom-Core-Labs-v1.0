@@ -39,9 +39,9 @@ function Showcases() {
             </span>
           </Link>
           <nav className="flex items-center gap-3 md:gap-6 text-[13px] text-slate-ink">
-            <Link className="hidden sm:inline hover:text-primary transition-colors" to="/#services">Services</Link>
-            <Link className="hidden sm:inline hover:text-primary transition-colors" to="/#book">Book Appointment</Link>
-            <Link className="hidden sm:inline hover:text-primary transition-colors" to="/showcases">Showcases</Link>
+            <Link className="inline hover:text-primary transition-colors" to="/">Services</Link>
+            <Link className="inline hover:text-primary transition-colors" to="/">Book Appointment</Link>
+            <Link className="inline hover:text-primary transition-colors" to="/showcases">Showcases</Link>
             <a
               href="https://youtube.com"
               target="_blank"
