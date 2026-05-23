@@ -108,10 +108,9 @@ export default function IntakeForm() {
   const back = () => setStep((s) => Math.max(s - 1, 0)); 
 
   // Formspree Submission Integration Block
-  const submit = async () => {
-    if (!consent) {
-      setErrors({ consent: "You must accept the terms to continue" });
-      return;
+  const submit = async (e: React.FormEvent) => {
+    if (e && typeof e.preventDefault === "function") {
+      e.preventDefault();
     }
     setErrors({});
 
@@ -185,7 +184,7 @@ export default function IntakeForm() {
           {/* Body */} 
           <div className="px-8 py-10 min-h-[420px]"> 
             {submitted ? ( 
-              <SubmittedState track={track!} services={services} catalog={[...BUILD_SERVICES, ...REPAIR_SERVICES]} subtotal={subtotal} deposit={deposit} /> 
+              <SubmittedState track={track!} subtotal={subtotal} deposit={deposit} />
             ) : step === 0 ? ( 
               <StepTrack track={track} onPick={pickTrack} />
 ) : step === 1 ? ( 
@@ -193,7 +192,7 @@ export default function IntakeForm() {
 ) : step === 2 ? ( 
   <StepDetails track={track!} pcpp={pcpp} setPcpp={setPcpp} symptoms={symptoms} setSymptoms={setSymptoms} name={name} setName={setName} phone={phone} setPhone={setPhone} email={email} setEmail={setEmail} errors={errors} />
 ) : ( 
-  <StepSummary track={track!} services={services} catalog={[...BUILD_SERVICES, ...REPAIR_SERVICES]} subtotal={subtotal} deposit={deposit} pcpp={pcpp} symptoms={symptoms} name={name} phone={phone} email={email} consent={consent} setConsent={setConsent} error={errors.consent} />
+ <StepSummary track={track!} services={services} catalog={[...BUILD_SERVICES, ...REPAIR_SERVICES]} subtotal={subtotal} deposit={deposit} pcpp={pcpp} symptoms={symptoms} name={name} phone={phone} email={email} consent={consent} setConsent={setConsent} error={errors.consent} />
 )} 
 </div> 
 
@@ -421,4 +420,17 @@ function FieldHint({ children, error }: { children: React.ReactNode; error?: str
     ); 
   } 
   return <p className="mt-2 text-[11.5px] text-slate-mute">{children}</p>; 
+}
+function SubmittedState({ track, subtotal, deposit }: { track: string; subtotal: number; deposit: number }) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-12">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+        <ShieldCheck className="h-6 w-6" />
+      </div>
+      <h3 className="mt-6 text-[24px] font-semibold tracking-[-0.02em]">Project Submitted Successfully</h3>
+      <p className="mt-2 max-w-sm text-[14px] leading-relaxed text-slate-mute">
+        Your engineering request has been logged. Our diagnostic intake queue will process your specifications shortly.
+      </p>
+    </div>
+  );
 }
