@@ -442,7 +442,7 @@ function formatPhone(value: string): string {
     };
 
     try {
-      const response = await fetch("https://formspree.io/f/xlgvdlok", {
+      const response = await fetch("https://submit-form.cdwojick.workers.dev", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
