@@ -15,7 +15,11 @@ type ServiceId =
   | "cables"
   | "wipe"
   | "upgrade"
-  | "thermal";
+  | "thermal"
+  | "bios"
+  | "validation"
+  | "overclock"
+  | "osinstall";
 
 type Service = {
   id: ServiceId;
@@ -43,7 +47,7 @@ const SERVICES: Service[] = [
     short: "Full assembly, OS provisioning, pro routing, stress test.",
     category: "build",
     details:
-      "$159 flat rate for systems under $1,500, or 10% of parts value if total system is over $1,500. Structural component balancing, micro-vibration standoff fastening, clean-room compressed decontamination, BIOS flash optimization, custom fan curve profiling, unactivated OS provisioning, independent CPU/GPU load stress-testing. A $49 High-End Software Surcharge applies to Ultimate Builds over $1,500.",
+      "$159 flat rate for systems under $1,500, or 8% of parts value if total system is over $1,500. Structural component balancing, micro-vibration standoff fastening, clean-room compressed decontamination, BIOS flash optimization, custom fan curve profiling, unactivated OS provisioning, independent CPU/GPU load stress-testing. A $49 High-End Software Surcharge applies to Ultimate Builds over $1,500.",
   },
   {
     id: "refresh",
@@ -108,6 +112,42 @@ const SERVICES: Service[] = [
     details:
       "Complete removal of degraded compound, standard isopropyl alcohol cleanup, and precision application of high-end aftermarket thermal paste to the CPU/GPU core.",
   },
+  {
+    id: "bios",
+    title: "BIOS / Firmware Tuning",
+    priceLabel: "$49",
+    short: "Flash optimization, custom fan curves, voltage tuning.",
+    category: "service",
+    details:
+      "Latest BIOS update installation, custom fan curve profiling for optimal acoustics and thermals, voltage optimization for stability and efficiency.",
+  },
+  {
+    id: "validation",
+    title: "24-Hour Bench Validation",
+    priceLabel: "$89",
+    short: "Extended stress testing and stability verification.",
+    category: "service",
+    details:
+      "Full 24-hour burn-in testing with industry-standard tools. CPU and GPU thermal validation, memory stability testing with MemTest86, storage health verification, and comprehensive system stability reports.",
+  },
+  {
+    id: "overclock",
+    title: "Memory + CPU Overclock Profile",
+    priceLabel: "$79",
+    short: "Custom performance tuning for maximum throughput.",
+    category: "service",
+    details:
+      "Manual memory timing optimization, CPU frequency and voltage tuning, stability validation across multiple workloads, custom performance profiles saved to BIOS.",
+  },
+  {
+    id: "osinstall",
+    title: "OS Install & Driver Provisioning",
+    priceLabel: "$39",
+    short: "Clean Windows/Linux install with all drivers.",
+    category: "service",
+    details:
+      "Clean operating system installation (Windows or Linux), all motherboard and peripheral drivers installed and updated, Windows activation ready (key not included), bloatware-free configuration.",
+  },
 ];
 
 const SERVICE_MAP: Record<ServiceId, Service> = SERVICES.reduce(
@@ -127,8 +167,8 @@ function computeLineItems(active: Set<ServiceId>, partsValue: number) {
     if (partsValue > 1500) {
       items.push({
         id: "ultimate",
-        label: "Ultimate Build · 10% of parts",
-        amount: +(partsValue * 0.1).toFixed(2),
+        label: "Ultimate Build · 8% of parts",
+        amount: +(partsValue * 0.08).toFixed(2),
       });
       items.push({ id: "ultimate", label: "Software surcharge (>$1,500)", amount: 49 });
     } else {
@@ -142,6 +182,10 @@ function computeLineItems(active: Set<ServiceId>, partsValue: number) {
   if (active.has("wipe")) items.push({ id: "wipe", label: "Secure Drive Wipe", amount: 15 });
   if (active.has("upgrade")) items.push({ id: "upgrade", label: "Hardware Upgrade · TBD", amount: 0 });
   if (active.has("thermal")) items.push({ id: "thermal", label: "Fresh Thermal Paste (add-on)", amount: 10 });
+  if (active.has("bios")) items.push({ id: "bios", label: "BIOS / Firmware Tuning", amount: 49 });
+  if (active.has("validation")) items.push({ id: "validation", label: "24-Hour Bench Validation", amount: 89 });
+  if (active.has("overclock")) items.push({ id: "overclock", label: "Memory + CPU Overclock Profile", amount: 79 });
+  if (active.has("osinstall")) items.push({ id: "osinstall", label: "OS Install & Driver Provisioning", amount: 39 });
 
   const total = items.reduce((s, i) => s + i.amount, 0);
   return { items, total: +total.toFixed(2) };
@@ -154,10 +198,8 @@ export default function App() {
   const [partsValueStr, setPartsValueStr] = useState("");
   const [modal, setModal] = useState<ServiceId | null>(null);
   const [termsOpen, setTermsOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   const partsValue = Math.max(0, Number(partsValueStr) || 0);
-
 
   /* ----- Compatibility logic ----- */
   const buildSelected = active.has("basic") || active.has("ultimate");
@@ -210,39 +252,19 @@ export default function App() {
 
   const { items, total } = useMemo(() => computeLineItems(active, partsValue), [active, partsValue]);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Encodes your form state fields into a format Formspree expects
-    const formData = new FormData(e.currentTarget);
-
-    fetch("https://formspree.io/f/xlgvdlok", {
-      method: "POST",
-      headers: {
-        "Accept": "application/json"
-      },
-      body: formData
-    })
-    .then(() => {
-      alert("PC Intake Form Submitted Successfully!");
-      setSubmitted(true);
-      setActive(new Set());
-      setPartsValueStr("");
-    });
-  };
   return (
     <main id="top" className="min-h-screen bg-background text-foreground antialiased">
       <Header />
       <Hero />
-      237    <ServicesGrid
-    active={active}
-    toggle={toggle}
-    isDisabled={isDisabled}
-    openModal={(id) => setModal(id)}
-    />
-  <IntakeForm />
-  <Disclosure />
-  <Footer onOpenTerms={() => setTermsOpen(true)} />
+      <ServicesGrid
+        active={active}
+        toggle={toggle}
+        isDisabled={isDisabled}
+        openModal={(id) => setModal(id)}
+      />
+      <IntakeForm />
+      <Disclosure />
+      <Footer onOpenTerms={() => setTermsOpen(true)} />
 
       {modal && <DetailsModal service={SERVICE_MAP[modal]} onClose={() => setModal(null)} />}
       {termsOpen && <TermsModal onClose={() => setTermsOpen(false)} />}
@@ -341,7 +363,8 @@ function ServicesGrid({
   const groups: { title: string; tag: string; ids: ServiceId[] }[] = [
     { title: "New Builds", tag: "A · choose one", ids: ["basic", "ultimate"] },
     { title: "Service & Repair", tag: "B · pick any", ids: ["refresh", "diagnostic", "software", "cables", "wipe", "upgrade"] },
-    { title: "Add-on", tag: "C · conditional", ids: ["thermal"] },
+    { title: "Performance & Tuning", tag: "C · pick any", ids: ["bios", "validation", "overclock", "osinstall"] },
+    { title: "Add-on", tag: "D · conditional", ids: ["thermal"] },
   ];
 
   return (
@@ -460,7 +483,7 @@ function ServiceCard({
 
       {service.id === "ultimate" && (
         <p className="mono mt-4 text-[10.5px] uppercase leading-relaxed tracking-[0.14em] text-slate-mute">
-          <span className="text-primary">↳</span> Over $1,500 → 10% of parts + $49 setup.
+          <span className="text-primary">↳</span> Over $1,500 → 8% of parts + $49 setup.
         </p>
       )}
       {service.id === "diagnostic" && (
@@ -547,294 +570,6 @@ function DetailsModal({ service, onClose }: { service: Service; onClose: () => v
   );
 }
 
-/* ---------------- Intake + Estimator ---------------- */
-
-function IntakeAndEstimator({
-  active,
-  items,
-  total,
-  partsValueStr,
-  setPartsValueStr,
-  submitted,
-  onSubmit,
-  resetSubmitted,
-}: {
-  active: Set<ServiceId>;
-  items: { id: ServiceId; label: string; amount: number }[];
-  total: number;
-  partsValueStr: string;
-  setPartsValueStr: (v: string) => void;
-  submitted: boolean;
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-  resetSubmitted: () => void;
-}) {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [consent, setConsent] = useState(false);
-
-  return (
-    <section id="book" className="border-b hairline bg-secondary/30">
-      <div className="mx-auto max-w-[1280px] px-5 md:px-8 py-16 md:py-24">
-        <div className="flex items-end justify-between gap-6">
-          <div>
-            <div className="mono text-[10.5px] uppercase tracking-[0.18em] text-primary">§ 02</div>
-            <div className="mono mt-2 text-[10.5px] uppercase tracking-[0.18em] text-slate-mute">
-              Smart intake · live estimator
-            </div>
-          </div>
-          <h2 className="text-[36px] md:text-[56px] font-semibold leading-[1] tracking-[-0.03em]">Book</h2>
-        </div>
-
-        <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Form */}
-          <div className="lg:col-span-7 rounded-xl border hairline-strong bg-background p-6 md:p-8">
-            <div className="mono mb-6 flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-slate-mute">
-              <span>Form · Intake brief</span>
-              <span className="text-primary">Step {step} / 2</span>
-            </div>
-
-            {submitted ? (
-              <div className="rounded-lg border-2 border-primary/40 bg-primary/5 p-8 text-center">
-                <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                  <Check className="h-6 w-6" />
-                </div>
-                <h3 className="text-[22px] font-semibold tracking-tight">Lab Request Received.</h3>
-                <p className="mt-3 text-[14px] leading-relaxed text-slate-ink">
-                  A technician will review your technical layout and contact you within 24–48 hours via your provided phone or email to coordinate an office appointment.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => { resetSubmitted(); setStep(1); }}
-                  className="mt-6 inline-flex items-center gap-2 rounded-md border hairline-strong bg-background px-4 py-2 text-[12.5px] font-medium text-slate-ink hover:border-primary hover:text-primary"
-                >
-                  Submit another brief
-                </button>
-              </div>
-            ) : (
-              <form
-                name="pc-intake-form"
-                method="POST"
-                data-netlify="true"
-                onSubmit={onSubmit}
-                className="space-y-5"
-              >
-                <input type="hidden" name="form-name" value="pc-intake-form" />
-                <input type="hidden" name="selected-services" value={Array.from(active).map((id) => SERVICE_MAP[id].title).join(", ")} />
-                <input type="hidden" name="labor-total" value={total.toFixed(2)} />
-                {step === 1 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <Field
-                      label="Customer name"
-                      name="customer-name"
-                      placeholder="Jane Doe"
-                      maxLength={120}
-                      required
-                    />
-                    <Field
-                      label="Phone number"
-                      name="phone-number"
-                      placeholder="(585) 555-0142"
-                      type="tel"
-                      maxLength={32}
-                      required
-                    />
-                    <Field
-                      label="Email"
-                      name="email"
-                      placeholder="jane@email.com"
-                      type="email"
-                      maxLength={255}
-                      required
-                    />
-                    <Field
-                      label="PCPartPicker URL"
-                      name="pcpartpicker-url"
-                      placeholder="https://pcpartpicker.com/list/…"
-                      type="url"
-                      maxLength={500}
-                    />
-                    <div className="sm:col-span-2 flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() => setStep(2)}
-                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-[13.5px] font-medium text-primary-foreground hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Continue
-                        <ArrowUpRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {step === 2 && (
-                  <div className="space-y-5">
-                    <FieldShell label="Total parts value (USD)">
-                      <div className="flex items-center gap-2 rounded-md border hairline-strong bg-background px-3.5 py-2.5 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                        <span className="mono text-[13px] text-slate-mute">$</span>
-                        <input
-                          name="parts-value"
-                          inputMode="decimal"
-                          defaultValue={partsValueStr}
-                          onChange={(e) => setPartsValueStr(e.target.value.replace(/[^0-9.]/g, "").slice(0, 9))}
-                          placeholder="1850.00"
-                          className="w-full bg-transparent text-[14px] text-foreground placeholder:text-slate-mute/70 focus:outline-none"
-                        />
-                      </div>
-                      <p className="mono mt-2 text-[10.5px] uppercase tracking-[0.16em] text-slate-mute">
-                        Used to calculate Basic & Ultimate Build labor.
-                      </p>
-                    </FieldShell>
-
-                    <div className="rounded-md border hairline bg-secondary/40 px-4 py-3 text-[13px] leading-relaxed text-slate-ink">
-                      <span className="font-medium">Selected services:</span>{" "}
-                      {active.size === 0 ? (
-                        <span className="text-slate-mute">None yet — pick options in the Services section above.</span>
-                      ) : (
-                        Array.from(active).map((id) => SERVICE_MAP[id].title).join(", ")
-                      )}
-                    </div>
-
-                    <label className="flex items-start gap-3 rounded-md border hairline bg-background px-4 py-3">
-                      <input
-                        name="terms-consent"
-                        type="checkbox"
-                        checked={consent}
-                        onChange={(e) => setConsent(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 accent-[oklch(0.62_0.24_255)]"
-                      />
-                      <span className="text-[13px] leading-relaxed text-slate-ink">
-                        I understand I provide all hardware and software activation keys, and that drop-off / pickup requires a scheduled appointment in Bushnell's Basin.
-                      </span>
-                    </label>
-
-                    <div className="rounded-md border hairline-strong bg-background px-4 py-3 text-[12.5px] leading-relaxed text-slate-ink">
-                      <ShieldCheck className="mr-1 inline h-4 w-4 text-primary" />
-                      100% Payment is due ONLY upon completion after verifying the system boots. Drop-offs and pickups require a scheduled appointment at our Bushnell's Basin office to meet the builder face-to-face and co-sign our hardware liability contract.
-                    </div>
-
-                    <div className="flex items-center justify-between gap-3">
-                      <button
-                        type="button"
-                        onClick={() => setStep(1)}
-                        className="inline-flex items-center gap-2 rounded-md border hairline-strong bg-background px-4 py-2.5 text-[13px] font-medium text-slate-ink hover:border-primary hover:text-primary"
-                      >
-                        Back
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={!consent}
-                        className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-[13.5px] font-medium text-primary-foreground hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Submit brief
-                        <ArrowUpRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </form>
-            )}
-          </div>
-
-          {/* Estimator */}
-          <aside className="lg:col-span-5">
-            <div className="sticky top-20 rounded-xl border hairline-strong bg-background p-6 md:p-8 shadow-[var(--shadow-elegant)]">
-              <div className="mono flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-slate-mute">
-                <span>Live estimate</span>
-                <span className="text-primary">Real-time</span>
-              </div>
-
-              <div className="mt-6">
-                <div className="mono text-[10px] uppercase tracking-[0.18em] text-slate-mute">Total labor</div>
-                <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="mono text-[14px] text-slate-mute">$</span>
-                  <span className="text-[44px] font-semibold leading-none tracking-[-0.03em] tabular-nums">
-                    {total.toFixed(2)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-2">
-                {items.length === 0 ? (
-                  <div className="rounded-md border hairline bg-secondary/30 px-3 py-3 text-[13px] text-slate-mute">
-                    Select services and enter parts value to see your live quote.
-                  </div>
-                ) : (
-                  items.map((it, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between border-b hairline py-2 text-[13px]"
-                    >
-                      <span className="text-slate-ink">{it.label}</span>
-                      <span className="mono tabular-nums text-foreground">${it.amount.toFixed(2)}</span>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-md border hairline-strong bg-border">
-                <div className="bg-background p-4">
-                  <div className="mono text-[10px] uppercase tracking-[0.18em] text-slate-mute">Due at start</div>
-                  <div className="mt-1 text-[20px] font-semibold tracking-tight">$0.00</div>
-                  <div className="mono mt-1 text-[10px] uppercase tracking-[0.16em] text-slate-mute">0%</div>
-                </div>
-                <div className="bg-background p-4">
-                  <div className="mono text-[10px] uppercase tracking-[0.18em] text-slate-mute">Due at pickup</div>
-                  <div className="mt-1 text-[20px] font-semibold tracking-tight tabular-nums">${total.toFixed(2)}</div>
-                  <div className="mono mt-1 text-[10px] uppercase tracking-[0.16em] text-primary">100%</div>
-                </div>
-              </div>
-            </div>
-          </aside>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ---------------- Form primitives ---------------- */
-
-function FieldShell({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="mono mb-2 block text-[10px] uppercase tracking-[0.18em] text-slate-mute">
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-function Field({
-  label,
-  name,
-  placeholder,
-  type = "text",
-  maxLength,
-  required,
-  defaultValue = "",
-}: {
-  label: string;
-  name: string;
-  placeholder?: string;
-  type?: string;
-  maxLength?: number;
-  required?: boolean;
-  defaultValue?: string;
-}) {
-  return (
-    <FieldShell label={label}>
-      <input
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        placeholder={placeholder}
-        maxLength={maxLength}
-        required={required}
-        className="w-full rounded-md border hairline-strong bg-background px-3.5 py-2.5 text-[14px] text-foreground placeholder:text-slate-mute/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-      />
-    </FieldShell>
-  );
-}
-
 /* ---------------- Footer ---------------- */
 
 function Footer({ onOpenTerms }: { onOpenTerms: () => void }) {
@@ -862,7 +597,7 @@ function Footer({ onOpenTerms }: { onOpenTerms: () => void }) {
             onClick={onOpenTerms}
             className="self-start text-[12px] font-medium text-primary underline-offset-4 hover:underline"
           >
-            Terms &amp; Conditions / Service Contract
+            Terms & Conditions / Service Contract
           </button>
         </div>
       </div>
@@ -926,7 +661,7 @@ function Disclosure() {
             </div>
           </div>
           <h2 className="text-[28px] md:text-[44px] font-semibold leading-[1.05] tracking-[-0.03em]">
-            Full Operational Disclosure &amp; Transparency Statement
+            Full Operational Disclosure & Transparency Statement
           </h2>
         </div>
 
@@ -974,6 +709,10 @@ const TERMS: { title: string; body: string }[] = [
     title: "4. Fulfillment Logistics",
     body: "Drop-off and pickup transactions must conform strictly to scheduled windows at our secure Bushnell's Basin office location.",
   },
+  {
+    title: "5. Payment Terms",
+    body: "100% of the labor fee is due only after the system is fully assembled, boots successfully, and you have verified operation and signed the approval form. No deposits or upfront payments are required.",
+  },
 ];
 
 function TermsModal({ onClose }: { onClose: () => void }) {
@@ -1012,7 +751,7 @@ function TermsModal({ onClose }: { onClose: () => void }) {
           Service Contract · v1
         </div>
         <h3 id="terms-title" className="mt-2 text-[24px] font-semibold tracking-[-0.02em]">
-          Terms &amp; Conditions
+          Terms & Conditions
         </h3>
         <p className="mt-2 text-[13px] text-slate-mute">
           Binding rules for all Custom Core Labs engagements.
@@ -1032,7 +771,7 @@ function TermsModal({ onClose }: { onClose: () => void }) {
           onClick={onClose}
           className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2.5 text-[13.5px] font-medium text-primary-foreground hover:opacity-90"
         >
-          Acknowledge &amp; close
+          Acknowledge & close
         </button>
       </div>
     </div>
