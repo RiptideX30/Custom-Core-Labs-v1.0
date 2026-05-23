@@ -47,7 +47,7 @@ export default function IntakeForm() {
   const [pcpp, setPcpp] = useState(""); 
   const [symptoms, setSymptoms] = useState(""); 
   const [consent, setConsent] = useState(false); 
-  const [Name, setName] = useState("");
+  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false); 
@@ -193,7 +193,7 @@ export default function IntakeForm() {
 ) : step === 2 ? ( 
   <StepDetails track={track!} pcpp={pcpp} setPcpp={setPcpp} symptoms={symptoms} setSymptoms={setSymptoms} name={name} setName={setName} phone={phone} setPhone={setPhone} email={email} setEmail={setEmail} errors={errors} />
 ) : ( 
-  <StepSummary track={track!} services={services} catalog={[...BUILD_SERVICES, ...REPAIR_SERVICES]} subtotal={subtotal} deposit={deposit} pcpp={pcpp} symptoms={symptoms} consent={consent} setConsent={setConsent} error={errors.consent} /> 
+  <StepSummary track={track!} services={services} catalog={[...BUILD_SERVICES, ...REPAIR_SERVICES]} subtotal={subtotal} deposit={deposit} pcpp={pcpp} symptoms={symptoms} name={name} phone={phone} email={email} consent={consent} setConsent={setConsent} error={errors.consent} />
 )} 
 </div> 
 
@@ -345,78 +345,51 @@ function StepDetails({ track, pcpp, setPcpp, symptoms, setSymptoms, name, setNam
 }
 
 /* ---------- Step 4 ---------- */ 
-function StepSummary({ track, services, catalog, subtotal, deposit, pcpp, symptoms, consent, setConsent, error, }: { track: Track; services: Set<ServiceId>; catalog: readonly { id: ServiceId; title: string; price: number }[]; subtotal: number; deposit: number; pcpp: string; symptoms: string; consent: boolean; setConsent: (v: boolean) => void; error?: string; }) { 
-  const lines = [...services] .map((id) => catalog.find((c) => c.id === id)) .filter(Boolean) as { id: ServiceId; title: string; price: number }[]; 
-  
-  return ( 
-    <div> 
-      <StepHeader index="04" title="Summary &amp; estimate" sub="Review before submitting." /> 
-      <div className="mt-10 grid grid-cols-12 gap-8"> 
-        {/* Left: line items */} 
-        <div className="col-span-7 overflow-hidden rounded-xl border hairline-strong"> 
-          <div className="grid grid-cols-12 border-b hairline bg-secondary/40 px-5 py-3"> 
-            <div className="mono col-span-2 text-[10px] uppercase tracking-[0.18em] text-slate-mute">Track</div> 
-            <div className="mono col-span-8 text-[10px] uppercase tracking-[0.18em] text-slate-mute">Line item</div> 
-            <div className="mono col-span-2 text-right text-[10px] uppercase tracking-[0.18em] text-slate-mute">Price</div> 
-          </div> 
-          <div className="grid grid-cols-12 items-center border-b hairline px-5 py-3"> 
-            <div className="col-span-2"> 
-              <span className="mono inline-flex items-center gap-1.5 rounded-full border hairline bg-background px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-primary"> {track === "build" ? "BUILD" : "REPAIR"} </span> 
-            </div> 
-            <div className="col-span-10 text-[13px] text-slate-ink"> {track === "build" ? "Custom Build engagement" : "Diagnostic & repair engagement"} </div> 
-          </div> 
-          {lines.length === 0 ? ( 
-            <div className="px-5 py-8 text-center text-[13px] text-slate-mute"> No services selected. </div> 
-          ) : ( 
-            lines.map((l, i) => ( 
-              <div key={l.id} className={`grid grid-cols-12 items-center px-5 py-3 ${ i < lines.length - 1 ? "border-b hairline" : "" }`} > 
-                <div className="mono col-span-2 text-[10.5px] uppercase tracking-[0.18em] text-slate-mute"> {String(i + 1).padStart(2, "0")} </div> 
-                <div className="col-span-8 text-[14px]">{l.title}</div> 
-                <div className="col-span-2 text-right"> 
-                  <span className="mono text-[11px] text-slate-mute">$</span> 
-                  <span className="ml-0.5 text-[15px] font-semibold tabular-nums">{l.price}</span> 
-                </div> 
-              </div> 
-            )) 
-          )} 
-          {(pcpp || symptoms) && ( 
-            <div className="border-t hairline bg-secondary/30 px-5 py-4"> 
-              {pcpp && ( 
-                <div className="mb-2 flex items-start gap-2"> 
-                  <Link2 className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" strokeWidth={1.75} /> 
-                  <div className="mono truncate text-[11px] text-slate-ink">{pcpp}</div> 
-                </div> 
-              )} 
-              {symptoms && ( 
-                <div className="flex items-start gap-2"> 
-                  <FileText className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-primary" strokeWidth={1.75} /> 
-                  <p className="line-clamp-2 text-[12.5px] leading-relaxed text-slate-ink">{symptoms}</p> 
-                </div> 
-              )} 
-            </div> 
-          )} 
-        </div> 
-        {/* Right: totals + consent */} 
-        <div className="col-span-5 space-y-5"> 
-          <div className="rounded-xl border hairline-strong bg-background p-6 shadow-[var(--shadow-elegant)]"> 
-            <div className="mono text-[10px] uppercase tracking-[0.18em] text-slate-mute"> Estimated quote </div> 
-            <div className="mt-3 flex items-baseline gap-1.5"> 
-              <span className="mono text-[14px] text-slate-mute">$</span>
-<span className="text-[52px] font-semibold leading-none tabular-nums tracking-[-0.04em]"> {subtotal.toLocaleString()} </span> </div> <div className="mono mt-2 text-[10.5px] uppercase tracking-[0.18em] text-slate-mute"> Labor only · parts not included </div> <div className="mt-5 flex items-center justify-between border-t hairline pt-4"> <span className="mono text-[10.5px] uppercase tracking-[0.18em] text-slate-mute"> 20% deposit </span> <span className="text-[18px] font-semibold tabular-nums tracking-[-0.02em] text-primary"> ${deposit.toLocaleString()} </span> </div> </div> <label className={`flex cursor-pointer items-start gap-3 rounded-xl border bg-background p-5 transition-colors ${ error ? "border-destructive" : consent ? "border-primary" : "hairline-strong hover:border-primary/60" }`} > <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="sr-only" /> <span className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-all ${ consent ? "border-primary bg-primary text-primary-foreground" : "hairline-strong" }`} > {consent && <Check className="h-3 w-3" strokeWidth={3} />} </span> <div> <div className="flex items-center gap-2"> <ShieldCheck className="h-3.5 w-3.5 text-primary" strokeWidth={1.75} /> <span className="mono text-[10px] uppercase tracking-[0.18em] text-primary"> Required </span> </div> <p className="mt-1.5 text-[13px] leading-relaxed text-slate-ink"> I understand I provide all hardware and activation keys. <br /> <span className="text-foreground font-medium">20% deposit due to start.</span> </p> {error && ( <p className="mt-2 flex items-center gap-1.5 text-[12px] text-destructive"> <AlertCircle className="h-3 w-3" /> {error} </p> )} </div> </label> </div> </div> </div> ); } 
+function StepSummary({ track, services, catalog, subtotal, deposit, pcpp, symptoms, name, phone, email, consent, setConsent, error }: any) {
+  return (
+    <div className="space-y-6">
+      {/* Hidden inputs keep Step 3 data alive in HTML memory when Step 4 renders */}
+      <input type="hidden" name="Customer Name" value={name || ""} />
+      <input type="hidden" name="Phone Number" value={phone || ""} />
+      <input type="hidden" name="Email Address" value={email || ""} />
+      <input type="hidden" name="PCPartPicker URL" value={pcpp || ""} />
+      <input type="hidden" name="Symptom Details" value={symptoms || ""} />
 
-/* ---------- Submitted ---------- */ 
-function SubmittedState({ track, services, catalog, subtotal, deposit, }: { track: Track; services: Set<ServiceId>; catalog: readonly { id: ServiceId; title: string; price: number }[]; subtotal: number; deposit: number; }) { 
-  return ( 
-    <div className="flex flex-col items-center justify-center py-16 text-center"> 
-      <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-primary bg-accent/40"> 
-        <Check className="h-6 w-6 text-primary" strokeWidth={2.5} /> 
-      </div> 
-      <div className="mono mt-6 text-[10.5px] uppercase tracking-[0.18em] text-primary"> Brief received · CCL-{Math.floor(Math.random() * 9000 + 1000)} </div> 
-      <h3 className="mt-3 text-[34px] font-semibold tracking-[-0.02em]"> We'll be in touch within 2 business days. </h3> 
-      <p className="mt-3 max-w-md text-[14px] leading-relaxed text-slate-mute"> Your {track === "build" ? "build" : "repair"} brief is queued for review. Estimated quote: <span className="font-medium text-foreground">${subtotal.toLocaleString()}</span>{" "} · Deposit: <span className="font-medium text-primary">${deposit.toLocaleString()}</span> · {" "}{services.size} {services.size === 1 ? "line item" : "line items"}. </p> 
-    </div> 
-  ); 
-} 
+      <StepHeader index="04" title="Review summary" sub="Confirm your project details and estimate before submission." />
+      
+      <div className="rounded-lg border hairline bg-secondary/10 p-6 space-y-4">
+        <div className="flex justify-between border-b hairline pb-3">
+          <span className="text-slate-mute">Project Track</span>
+          <span className="font-semibold uppercase tracking-wider text-primary">{track}</span>
+        </div>
+        <div className="flex justify-between border-b hairline pb-3">
+          <span className="text-slate-mute">Labor Estimate</span>
+          <span className="font-semibold font-mono">${subtotal.toLocaleString()}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-slate-mute">Required Deposit (20%)</span>
+          <span className="font-semibold font-mono text-emerald-500">${deposit.toLocaleString()}</span>
+        </div>
+      </div>
+
+      <div className="pt-4">
+        <label className="flex items-start gap-3 cursor-pointer select-none">
+          <input 
+            type="checkbox" 
+            className="mt-1 rounded border-slate-strong bg-background text-primary focus:ring-primary" 
+            checked={consent} 
+            onChange={(e) => setConsent(e.target.checked)} 
+          />
+          <span className="text-[13px] text-slate-mute leading-relaxed">
+            I authorize Custom Core Labs to process this service request and confirm the accuracy of the technical specifications provided above.
+          </span>
+        </label>
+        {error && <div className="mt-2 text-xs font-medium text-destructive">{error}</div>}
+      </div>
+    </div>
+  );
+}
+
 
 /* ---------- Primitives ---------- */ 
 function StepHeader({ index, title, sub }: { index: string; title: string; sub?: string }) { 
